@@ -10,6 +10,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 public class ExampleScenarioTest {
@@ -34,27 +35,44 @@ public class ExampleScenarioTest {
     @Test
     public void exampleScenario() {
         // выбрать пункт меню - "Страхование"
-        String insuranceButtonXPath = "//label[text()='Страхование']";
-        WebElement insuranceButton = driver.findElement(By.xpath(insuranceButtonXPath));
-        insuranceButton.click();
+        String insuranceButtonXPath = "//a[@aria-label='Меню  Страхование']";
+        List<WebElement> insuranceButtonList = driver.findElements(By.xpath(insuranceButtonXPath));
+        if (!insuranceButtonList.isEmpty()){
+            insuranceButtonList.get(0).click();
+        }
 
-        // выбрать пункт подменю - "Страхование путешественников"
-        String travellersInsuranceButtonXPath = "//a[text()='Страхование путешественников']";
-        WebElement travellersInsuranceButton = driver.findElement(By.xpath(travellersInsuranceButtonXPath));
+        // выбрать пункт подменю - "СберСтрахование"
+        String sberInsuranceButtonXPath = "//a[text()='СберСтрахование' and contains(@class, 'link_second')]";
+        WebElement travellersInsuranceButton = driver.findElement(By.xpath(sberInsuranceButtonXPath));
         travellersInsuranceButton.click();
 
+        // проверка открытия страницы "СберСтрахование"
+        Assert.assertEquals("Заголовок отсутствует/не соответствует требуемому",
+                "СберСтрахование - СберБанк", driver.getTitle());
+
+        // перейти к опции "Страхование путешественников"
+        String travellersInsuranceHeaderXPath = "//div[normalize-space()='Страхованиепутешественников']/div";
+        WebElement travellersInsuranceHeader = driver.findElement(By.xpath(travellersInsuranceHeaderXPath));
+        scrollToElementJs(travellersInsuranceHeader);
+
+        // нажать кнопку "Оформить онлайн"
+        String checkoutOnlineXPath = "../following::div/a[text()='Оформить онлайн'][1]";
+        WebElement checkoutOnlineButton = travellersInsuranceHeader.findElement(By.xpath(checkoutOnlineXPath));
+        waitUtilElementToBeClickable(checkoutOnlineButton);
+        checkoutOnlineButton.click();
+
         // проверка открытия страницы "Страхование путешественников"
-        String pageTitleXPath = "//div[contains(@class,'kit-col_xs_12')]/h1";
+        String pageTitleXPath = "//h1[contains(@class, 's-hero-banner')]";
+        waitUtilElementToBeVisible(By.xpath(pageTitleXPath));
         WebElement pageTitle = driver.findElement(By.xpath(pageTitleXPath));
         Assert.assertEquals("Заголовок отсутствует/не соответствует требуемому",
                 "Страхование путешественников", pageTitle.getText());
 
         // нажать кнопку "Оформить онлайн"
-        String checkoutOnlineXPath = "//b[text()='Оформить онлайн']";
-        WebElement checkoutOnlineButton = driver.findElement(By.xpath(checkoutOnlineXPath));
-        scrollToElementJs(checkoutOnlineButton);
-        waitUtilElementToBeClickable(checkoutOnlineButton);
-        checkoutOnlineButton.click();
+        String checkoutOnlineAgainXPath = "//a[contains(@class, 's-hero-banner')]";
+        WebElement checkoutOnlineAgainButton = driver.findElement(By.xpath(checkoutOnlineAgainXPath));
+        waitUtilElementToBeClickable(checkoutOnlineAgainButton);
+        checkoutOnlineAgainButton.click();
 
         // выбрать тариф страхования "Минимальный"
         String insuranceCoverageAmountXPath = "//h3[text()='Минимальная']";
@@ -117,6 +135,10 @@ public class ExampleScenarioTest {
 
     private void waitUtilElementToBeClickable(WebElement element) {
         wait.until(ExpectedConditions.elementToBeClickable(element));
+    }
+
+    private void waitUtilElementToBeVisible(By locator) {
+        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
     }
 
     private void waitUtilElementToBeVisible(WebElement element) {
